@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//User Table
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  tutorProfile    TutorProfile?
+  studentBookings Booking[]     @relation("StudentBookings")
+  tutorBookings   Booking[]     @relation("TutorBookings")
+  reviewsGiven    Review[]      @relation("StudentReviews")
+  reviewsReceived Review[]      @relation("TutorReviews")
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+//Tutor Profile table
+model TutorProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  bio          String
+  hourlyRate   Float
+  experience   Int
+  languages    String[]
+  rating       Float    @default(0)
+  totalReviews Int      @default(0)
+
+  user         User            @relation(fields: [userId], references: [id])
+  categories   TutorCategory[]
+  availability Availability[]
+}
+
+model Category {
+  id       String          @id @default(uuid())
+  name     String          @unique
+  tutors   TutorCategory[]
+  bookings Booking[]
+}
+
+// Many-to-Many: Tutors ↔ Categories
+model TutorCategory {
+  tutorId    String
+  categoryId String
+
+  tutor    TutorProfile @relation(fields: [tutorId], references: [id])
+  category Category     @relation(fields: [categoryId], references: [id])
+
+  @@id([tutorId, categoryId])
+}
+
+model Availability {
+  id        String @id @default(uuid())
+  tutorId   String
+  dayOfWeek Int // 0 = Sunday, 6 = Saturday
+  startTime String // "09:00"
+  endTime   String // "17:00"
+
+  tutor TutorProfile @relation(fields: [tutorId], references: [id])
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  studentId  String
+  tutorId    String
+  categoryId String
+  sessionAt  DateTime
+  duration   Int // in minutes (30, 60)
+  status     BookingStatus
+  price      Float
+  createdAt  DateTime      @default(now())
+
+  student  User     @relation("StudentBookings", fields: [studentId], references: [id])
+  tutor    User     @relation("TutorBookings", fields: [tutorId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+  review   Review?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  studentId String
+  tutorId   String
+  rating    Int // 1–5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  student User    @relation("StudentReviews", fields: [studentId], references: [id])
+  tutor   User    @relation("TutorReviews", fields: [tutorId], references: [id])
+}
