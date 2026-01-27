@@ -14,12 +14,12 @@ datasource db {
 }
 
 //User Table
+
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  password  String
-  role      Role
+  role      Role     @default(STUDENT)
   avatarUrl String?
   createdAt DateTime @default(now())
 
@@ -28,6 +28,15 @@ model User {
   tutorBookings   Booking[]     @relation("TutorBookings")
   reviewsGiven    Review[]      @relation("StudentReviews")
   reviewsReceived Review[]      @relation("TutorReviews")
+  emailVerified   Boolean       @default(false)
+  image           String?
+  updatedAt       DateTime      @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  phone           String?
+  status          String?       @default("ACTIVE")
+
+  @@map("user")
 }
 
 enum Role {
@@ -37,6 +46,7 @@ enum Role {
 }
 
 //Tutor Profile table
+
 model TutorProfile {
   id           String   @id @default(uuid())
   userId       String   @unique
@@ -60,6 +70,7 @@ model Category {
 }
 
 // Many-to-Many: Tutors ↔ Categories
+
 model TutorCategory {
   tutorId    String
   categoryId String
@@ -116,4 +127,54 @@ model Review {
   booking Booking @relation(fields: [bookingId], references: [id])
   student User    @relation("StudentReviews", fields: [studentId], references: [id])
   tutor   User    @relation("TutorReviews", fields: [tutorId], references: [id])
+}
+
+//added by better-auth
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }
