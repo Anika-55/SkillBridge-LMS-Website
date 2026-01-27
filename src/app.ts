@@ -21,4 +21,5 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 app.get("/", (req, res) => {
     res.send('Hello, World!');
 });
+
 export default app;
