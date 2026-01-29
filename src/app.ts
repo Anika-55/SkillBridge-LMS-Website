@@ -4,6 +4,7 @@ import { auth } from './lib/auth';
 import tutorRoutes from "./modules/tutor/tutor.route";
 import cors from 'cors';
 import { errorHandler } from './middlewares/error.middleware';
+import bookingRoutes from "./modules/bookings/booking.route";
 
 
 
@@ -19,7 +20,8 @@ app.use(express.json());
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use("/api/tutor", tutorRoutes);
-app.use("/api/tutors",tutorRoutes)
+app.use("/api/tutors", tutorRoutes)
+app.use("/api/bookings",bookingRoutes)
 
 app.use(errorHandler)
 app.get("/", (req, res) => {
