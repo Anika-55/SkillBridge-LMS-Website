@@ -26,15 +26,17 @@ model User {
   tutorProfile    TutorProfile?
   studentBookings Booking[]     @relation("StudentBookings")
   tutorBookings   Booking[]     @relation("TutorBookings")
-  reviewsGiven    Review[]      @relation("StudentReviews")
-  reviewsReceived Review[]      @relation("TutorReviews")
-  emailVerified   Boolean       @default(false)
-  image           String?
-  updatedAt       DateTime      @updatedAt
-  sessions        Session[]
-  accounts        Account[]
-  phone           String?
-  status          String?       @default("ACTIVE")
+
+  // Reviews this user (as a student) has written
+  reviewsGiven Review[] @relation("StudentReviews")
+
+  emailVerified Boolean   @default(false)
+  image         String?
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  phone         String?
+  status        String?   @default("ACTIVE")
 
   @@map("user")
 }
@@ -46,7 +48,6 @@ enum Role {
 }
 
 //Tutor Profile table
-
 model TutorProfile {
   id           String   @id @default(uuid())
   userId       String   @unique
@@ -60,6 +61,7 @@ model TutorProfile {
   user         User            @relation(fields: [userId], references: [id])
   categories   TutorCategory[]
   availability Availability[]
+  reviews      Review[]        @relation("TutorReviews")
 }
 
 model Category {
@@ -120,13 +122,17 @@ model Review {
   bookingId String   @unique
   studentId String
   tutorId   String
-  rating    Int // 1–5
+  rating    Int
   comment   String?
   createdAt DateTime @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id])
-  student User    @relation("StudentReviews", fields: [studentId], references: [id])
-  tutor   User    @relation("TutorReviews", fields: [tutorId], references: [id])
+
+  // Student who wrote the review
+  student User @relation("StudentReviews", fields: [studentId], references: [id])
+
+  // Tutor being reviewed
+  tutor TutorProfile @relation("TutorReviews", fields: [tutorId], references: [id])
 }
 
 //added by better-auth
