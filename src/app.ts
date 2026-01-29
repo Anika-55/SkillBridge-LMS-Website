@@ -5,6 +5,7 @@ import tutorRoutes from "./modules/tutor/tutor.route";
 import cors from 'cors';
 import { errorHandler } from './middlewares/error.middleware';
 import bookingRoutes from "./modules/bookings/booking.route";
+import reviewRoutes from "./modules/reviews/review.routes"
 
 
 
@@ -21,7 +22,8 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use("/api/tutor", tutorRoutes);
 app.use("/api/tutors", tutorRoutes)
-app.use("/api/bookings",bookingRoutes)
+app.use("/api/bookings", bookingRoutes)
+app.use("/api/reviews",reviewRoutes)
 
 app.use(errorHandler)
 app.get("/", (req, res) => {
